@@ -1,1 +1,435 @@
-holaaaaaaa 
+//Articulo
+
+package mx.unam.fi.poo;
+
+public class Articulo {
+    private String nombre;
+    private double precio;
+
+    public Articulo(String nombre, double precio) {
+        setNombre(nombre);
+        setPrecio(precio);
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        if (nombre != null && !nombre.trim().isEmpty()) {
+            this.nombre = nombre;
+        } else {
+            this.nombre = "Sin nombre";
+        }
+    }
+
+    public double getPrecio() {
+        return precio;
+    }
+
+    public void setPrecio(double precio) {
+        if (precio >= 0) {
+            this.precio = precio;
+        } else {
+            this.precio = 0.0;
+        }
+    }
+
+    public String toItemString() {
+        long cents = Math.round(precio * 100);
+        String entero = String.valueOf(cents / 100);
+        int dec = (int)(cents % 100);
+        String decStr = dec < 10 ? ("0" + dec) : String.valueOf(dec);
+        return nombre + " - $" + entero + "." + decStr;
+    }
+}
+
+// Fecha
+
+package mx.unam.fi.poo;
+
+public class Fecha {
+    private int dia, mes, anio;
+
+    public Fecha() {}
+
+    public Fecha(int dia, int mes, int anio){
+        setDia(dia);
+        setMes(mes);
+        setAnio(anio);
+    }
+
+    public int getDia() {
+        return dia;
+    }
+
+    public void setDia(int dia) {
+        if (dia > 0 && dia < 32) {
+            this.dia = dia;
+        } else {
+            System.out.println("Día no válido...");
+        }
+    }
+
+    public int getMes() {
+        return mes;
+    }
+
+    public void setMes(int mes) {
+        if (mes > 0 && mes < 13) {
+            this.mes = mes;
+        } else {
+            System.out.println("Mes no válido...");
+        }
+    }
+
+    public int getAnio() {
+        return anio;
+    }
+
+    public void setAnio(int anio) {
+        if (anio > 0) {
+            this.anio = anio;
+        } else {
+            System.out.println("Año no válido...");
+        }
+    }
+    
+    public String toString() {
+        return dia + "/" + mes + "/" + anio;
+    }
+}
+
+// Persona
+
+package mx.unam.fi.poo;
+
+public class Persona {
+    private String nombre, apellido;
+    private Fecha fNacimiento;
+
+    public Persona() {
+        fNacimiento = new Fecha();
+    }
+
+    public Persona(String nombre, String apellido, int fDia, int fMes, int fAnio) {
+        setNombre(nombre);
+        setApellido(apellido);
+        fNacimiento = new Fecha(fDia, fMes, fAnio);
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public String getApellido() {
+        return apellido;
+    }
+
+    public void setApellido(String apellido) {
+        this.apellido = apellido;
+    }
+
+    public Fecha getFNacimiento() {
+        return fNacimiento;
+    }
+
+    public void setFNacimiento(int dia, int mes, int anio) {
+        fNacimiento.setDia(dia);
+        fNacimiento.setMes(mes);
+        fNacimiento.setAnio(anio);
+    }
+}
+
+// Carrito
+
+package mx.unam.fi.poo;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Carrito {
+    private List<Articulo> articulos;
+
+    public Carrito() {
+        this.articulos = new ArrayList<>(); // Polimorfismo
+    }
+
+    public boolean agregar(Articulo a) {
+        if (a == null) return false;
+        if (a.getNombre().isEmpty()) return false; // Encapsulamiento
+        articulos.add(a);
+        return true;
+    }
+
+    public boolean eliminarPorIndice(int index) {
+        if (index < 0) return false;
+        if (index >= articulos.size()) return false;
+        articulos.remove(index);
+        return true;
+    }
+
+    public boolean eliminarPorNombre(String nombre) {
+        if (nombre == null) return false;
+        String target = nombre.trim();
+        if (target.isEmpty()) return false;
+        for (int i = 0; i < articulos.size(); i++) {
+            if (articulos.get(i).getNombre().equalsIgnoreCase(target)) {
+                articulos.remove(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void limpiar() {
+        articulos.clear();
+    }
+
+    public List<Articulo> getArticulos() {
+        return new ArrayList<>(articulos);
+    }
+
+    public double getTotal() {
+        double total = 0.0;
+        for (Articulo art : articulos) {
+            total += art.getPrecio(); // Encapsulamiento
+        }
+        return total;
+    }
+}
+
+// Vista
+
+package mx.unam.fi.poo;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.GridLayout;
+import javax.swing.*;
+
+public class Vista extends JFrame{
+    private final JTextField nombreField;
+    private final JTextField precioField;
+    private final JButton agregarButton;
+    private final JButton eliminarSelButton;
+    private final JButton eliminarPorNombreButton;
+    private final JButton limpiarButton;
+    private final DefaultListModel<String> listModel;
+    private final JList<String> lista;
+    private final JLabel estadoLabel;
+    private final JLabel totalLabel;
+
+    public Vista(String titulo) {
+        super(titulo);
+
+        nombreField = new JTextField();
+        precioField = new JTextField();
+        agregarButton = new JButton("Agregar");
+        eliminarSelButton = new JButton("Eliminar seleccionado");
+        eliminarPorNombreButton = new JButton("Eliminar por nombre");
+        limpiarButton = new JButton("Limpiar carrito");
+        listModel = new DefaultListModel<>();
+        lista = new JList<>(listModel);
+        estadoLabel = new JLabel("Listo.");
+        totalLabel = new JLabel("Total: $0.00");
+
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setPreferredSize(new Dimension(640, 420));
+        setLayout(new BorderLayout(10, 10));
+
+        JPanel entrada = new JPanel(new GridLayout(2, 2, 8, 8));
+        entrada.setBorder(BorderFactory.createTitledBorder("Datos del artículo"));
+        entrada.add(new JLabel("Nombre:"));
+        entrada.add(nombreField);
+        entrada.add(new JLabel("Precio:"));
+        entrada.add(precioField);
+
+        JPanel acciones = new JPanel(new GridLayout(1, 4, 8, 8));
+        acciones.add(agregarButton);
+        acciones.add(eliminarSelButton);
+        acciones.add(eliminarPorNombreButton);
+        acciones.add(limpiarButton);
+
+        JPanel top = new JPanel(new BorderLayout(8, 8));
+        top.add(entrada, BorderLayout.CENTER);
+        top.add(acciones, BorderLayout.SOUTH);
+
+        JPanel centro = new JPanel(new BorderLayout());
+        centro.setBorder(BorderFactory.createTitledBorder("Carrito"));
+        JScrollPane scroll = new JScrollPane(lista);
+        centro.add(scroll, BorderLayout.CENTER);
+
+        JPanel bottom = new JPanel(new BorderLayout(8, 8));
+        bottom.add(estadoLabel, BorderLayout.CENTER);
+        bottom.add(totalLabel, BorderLayout.EAST);
+
+        add(top, BorderLayout.NORTH);
+        add(centro, BorderLayout.CENTER);
+        add(bottom, BorderLayout.SOUTH);
+
+        pack();
+        setLocationRelativeTo(null);
+    }
+
+    public JTextField getNombreField() { return nombreField; }
+    public JTextField getPrecioField() { return precioField; }
+    public JButton getAgregarButton() { return agregarButton; }
+    public JButton getEliminarSelButton() { return eliminarSelButton; }
+    public JButton getEliminarPorNombreButton() { return eliminarPorNombreButton; }
+    public JButton getLimpiarButton() { return limpiarButton; }
+    public DefaultListModel<String> getListModel() { return listModel; }
+    public JList<String> getLista() { return lista; }
+    public JLabel getEstadoLabel() { return estadoLabel; }
+    public JLabel getTotalLabel() { return totalLabel; }
+}
+
+// MainApp
+
+package mx.unam.fi.poo;
+
+import java.util.List;
+import javax.swing.SwingUtilities;
+
+public class MainApp {
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            Carrito carrito = new Carrito();
+            Vista view = new Vista("Carrito de Compras");
+
+            // Listeners
+            view.getAgregarButton().addActionListener(e -> {
+                String nombre = view.getNombreField().getText();
+                double precio = safeParsePrecio(view.getPrecioField().getText());
+
+                if (nombre == null) nombre = "";
+                nombre = nombre.trim();
+
+                if (!isNombreValido(nombre)) {
+                    view.getEstadoLabel().setText("Nombre inválido.");
+                    return;
+                }
+                if (precio < 0) {
+                    view.getEstadoLabel().setText("Precio inválido.");
+                    return;
+                }
+
+                Articulo a = new Articulo(nombre, precio);
+                boolean ok = carrito.agregar(a);
+                if (ok) {
+                    refrescarLista(view, carrito);
+                    limpiarCampos(view);
+                    view.getEstadoLabel().setText("Artículo agregado.");
+                } else {
+                    view.getEstadoLabel().setText("No se pudo agregar.");
+                }
+            });
+
+            view.getEliminarSelButton().addActionListener(e -> {
+                int idx = view.getLista().getSelectedIndex();
+                boolean ok = carrito.eliminarPorIndice(idx);
+                if (ok) {
+                    refrescarLista(view, carrito);
+                    view.getEstadoLabel().setText("Artículo eliminado.");
+                } else {
+                    view.getEstadoLabel().setText("Selecciona un artículo.");
+                }
+            });
+
+            view.getEliminarPorNombreButton().addActionListener(e -> {
+                String nombre = view.getNombreField().getText();
+                if (nombre == null) nombre = "";
+                boolean ok = carrito.eliminarPorNombre(nombre);
+                if (ok) {
+                    refrescarLista(view, carrito);
+                    view.getEstadoLabel().setText("Eliminado por nombre.");
+                } else {
+                    view.getEstadoLabel().setText("No se encontró el nombre.");
+                }
+            });
+
+            view.getLimpiarButton().addActionListener(e -> {
+                carrito.limpiar();
+                refrescarLista(view, carrito);
+                view.getEstadoLabel().setText("Carrito vacío.");
+            });
+
+            // Mostrar ventana
+            refrescarLista(view, carrito);
+            view.setVisible(true);
+        });
+    }
+
+    private static boolean isNombreValido(String nombre) {
+        if (nombre == null) return false;
+        String n = nombre.trim();
+        return n.length() > 0;
+    }
+
+    private static double safeParsePrecio(String s) {
+        if (s == null) return -1.0;
+        String t = s.trim();
+        if (t.length() == 0) return -1.0;
+
+        int dots = 0;
+        for (int i = 0; i < t.length(); i++) {
+            char c = t.charAt(i);
+            boolean isDigit = (c >= '0' && c <= '9');
+            if (c == '.') {
+                dots++;
+                if (dots > 1) return -1.0;
+            } else if (!isDigit) {
+                return -1.0;
+            }
+        }
+
+        double result = 0.0;
+        double frac = 0.0;
+        double divisor = 1.0;
+        boolean afterDot = false;
+
+        for (int i = 0; i < t.length(); i++) {
+            char c = t.charAt(i);
+            if (c == '.') {
+                afterDot = true;
+            } else {
+                int d = c - '0';
+                if (!afterDot) {
+                    result = result * 10 + d;
+                } else {
+                    divisor *= 10.0;
+                    frac = frac + d / divisor;
+                }
+            }
+        }
+        return result + frac;
+    }
+
+    private static void refrescarLista(Vista view, Carrito carrito) {
+        view.getListModel().clear();
+        List<Articulo> lista = carrito.getArticulos();
+        for (Articulo art : lista) {
+            view.getListModel().addElement(art.toItemString());
+        }
+        double total = carrito.getTotal();
+        view.getTotalLabel().setText("Total: " + formatMoney(total));
+    }
+
+    private static void limpiarCampos(Vista view) {
+        view.getNombreField().setText("");
+        view.getPrecioField().setText("");
+        view.getLista().clearSelection();
+    }
+
+    private static String formatMoney(double amount) {
+        long cents = Math.round(amount * 100);
+        String entero = String.valueOf(cents / 100);
+        int dec = (int)(cents % 100);
+        String decStr = dec < 10 ? ("0" + dec) : String.valueOf(dec);
+        return "$" + entero + "." + decStr;
+    }
+}
